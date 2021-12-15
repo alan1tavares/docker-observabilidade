@@ -1,37 +1,41 @@
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.HttpsPolicy;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
 using Microsoft.OpenApi.Models;
+using Prometheus;
+using Prometheus.DotNetRuntime;
 
-namespace docker_observalidade
+namespace docker_observabilidade
 {
     public class Startup
     {
         public Startup(IConfiguration configuration)
         {
             Configuration = configuration;
+            Collector = CreateCollector();
         }
 
         public IConfiguration Configuration { get; }
 
+        public static IDisposable Collector;
+
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-
             services.AddControllers();
-            services.AddSwaggerGen(c =>
-            {
-                c.SwaggerDoc("v1", new OpenApiInfo { Title = "docker_observalidade", Version = "v1" });
-            });
+            services
+                .AddSwaggerGen(c =>
+                {
+                    c
+                        .SwaggerDoc("v1",
+                        new OpenApiInfo {
+                            Title = "docker_observabilidade",
+                            Version = "v1"
+                        });
+                });
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -41,8 +45,15 @@ namespace docker_observalidade
             {
                 app.UseDeveloperExceptionPage();
                 app.UseSwagger();
-                app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "docker_observalidade v1"));
+                app
+                    .UseSwaggerUI(c =>
+                        c
+                            .SwaggerEndpoint("/swagger/v1/swagger.json",
+                            "docker_observabilidade v1"));
             }
+
+            app.UseHttpMetrics();
+            app.UseMetricServer();
 
             app.UseHttpsRedirection();
 
@@ -50,10 +61,30 @@ namespace docker_observalidade
 
             app.UseAuthorization();
 
-            app.UseEndpoints(endpoints =>
-            {
-                endpoints.MapControllers();
-            });
+            app
+                .UseEndpoints(endpoints =>
+                {
+                    endpoints.MapControllers();
+                });
         }
+
+        public static IDisposable CreateCollector()
+        {
+            DotNetRuntimeStatsBuilder.Builder builder =
+                DotNetRuntimeStatsBuilder.Default();
+
+            builder =
+                DotNetRuntimeStatsBuilder
+                    .Customize()
+                    .WithContentionStats(CaptureLevel.Informational)
+                    .WithGcStats(CaptureLevel.Verbose)
+                    .WithThreadPoolStats(CaptureLevel.Informational)
+                    .WithExceptionStats(CaptureLevel.Errors)
+                    .WithJitStats();
+
+            builder.RecycleCollectorsEvery(new TimeSpan(0, 20, 0));
+
+            return builder.StartCollecting();
+        } 
     }
 }

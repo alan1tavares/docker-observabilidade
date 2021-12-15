@@ -1,9 +1,14 @@
 using System;
 
-namespace docker_observalidade
+namespace docker_observabilidade
 {
     public class WeatherForecast
     {
+        public WeatherForecast()
+            => Id = Guid.NewGuid();
+
+        public Guid Id { get; set; }
+
         public DateTime Date { get; set; }
 
         public int TemperatureC { get; set; }

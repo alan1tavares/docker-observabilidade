@@ -17,7 +17,7 @@
         "ASPNETCORE_ENVIRONMENT": "Development"
       }
     },
-    "docker_observalidade": {
+    "docker_observabilidade": {
       "commandName": "Project",
       "dotnetRunMessages": "true",
       "launchBrowser": true,

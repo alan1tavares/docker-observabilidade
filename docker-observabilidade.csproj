@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <TargetFramework>net5.0</TargetFramework>
-    <RootNamespace>docker_observalidade</RootNamespace>
+    <RootNamespace>docker_observabilidade</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>
