@@ -1,0 +1,29 @@
+version: '3.9'
+
+services:
+  web_application:
+    env_file:
+      - ./.env
+    image: web-application:1.0
+    container_name: web_application
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - 8081:80
+      - 8082:443
+    volumes:
+      - ./logs:/app/WebAplication/logs
+      - ./certificate:/app/WebAplication/certificate
+      - ./temp-keys:/root/.aspnet/DataProtection-Keys
+    environment:
+      - ASPNETCORE_URLS=https://+:443/;http://+:80
+      - ASPNETCORE_HTTPS_PORT=5003
+      - KestrelCertificatesDefaultPath=/app/WebAplication/certificate/certificate.pfx
+      - KestrelCertificatesDefaultPassword=1234
+    networks:
+      - docker_net
+
+networks:
+  docker_net:
+    driver: bridge
